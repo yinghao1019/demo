@@ -1,6 +1,8 @@
 package com.example.demo.service;
 
+import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -9,10 +11,13 @@ import java.util.List;
 
 import javax.transaction.Transactional;
 
+import org.apache.commons.compress.utils.FileNameUtils;
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -23,7 +28,6 @@ import com.example.demo.utils.ExcelUtils;
 
 import exception.BadRequestException;
 import lombok.RequiredArgsConstructor;
-import lombok.experimental.var;
 
 @Service
 @RequiredArgsConstructor
@@ -44,18 +48,19 @@ public class EmployeeService {
 		employeeDAO.saveAll(employeeEntities);
 	}
 
-	public void uploadExcel(MultipartFile file,Integer sheetNum) {
-		String fileExtension=file.getOriginalFilename();
-		Workbook workbook=null;
-		if("xls".equals(fileExtension)) {
-			
-		}else if("xlsx".equals(fileExtension)) {
-			
+	public void uploadExcel(MultipartFile file, Integer sheetNum) throws IOException{
+		String fileExtension = FileNameUtils.getExtension(file.getOriginalFilename());
+		Workbook workbook = null;
+		try (InputStream inputStream=file.getInputStream()){
+			if ("xls".equals(fileExtension)) {
+				workbook = new HSSFWorkbook(inputStream);
+			} else if ("xlsx".equals(fileExtension)) {
+				workbook = new XSSFWorkbook(inputStream);
+			}
 		}
-		
-		multipartFile.getInputStream();
-		
-		return 
+
+		List<EmployeeEntity> employeeEntities = parseEmployeeExcel(sheetNum, workbook);
+		employeeDAO.saveAll(employeeEntities);
 	}
 
 	private List<EmployeeEntity> parseEmployeeExcel(Integer sheetIndex, Workbook workbook) {
@@ -74,12 +79,12 @@ public class EmployeeService {
 		}
 
 		int rowEnd = sheet.getPhysicalNumberOfRows();
-		for (int rowNum = 1; rowNum < rowEnd; rowNum++) {
+		for (int rowNum = sheet.getFirstRowNum(); rowNum <= rowEnd; rowNum++) {
 			Row row = sheet.getRow(rowNum);
-			// check row is empty
-			if (null == row) {
+			if(ExcelUtils.checkIfRowIsEmpty(row)) {
 				continue;
 			}
+			
 			try {
 				employeeList.add(convertRowToEmployee(row));
 			} catch (Exception e) {
@@ -99,7 +104,7 @@ public class EmployeeService {
 
 		// last Name
 		Cell lastName = row.getCell(cellNum++);
-		employeeEntity.setFirstName(ExcelUtils.convertCellValueToStr(lastName));
+		employeeEntity.setLastName(ExcelUtils.convertCellValueToStr(lastName));
 		// age
 		Cell age = row.getCell(cellNum++);
 		employeeEntity.setAge(ExcelUtils.convertCellValueToInt(age));

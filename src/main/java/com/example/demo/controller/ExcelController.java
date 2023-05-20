@@ -7,7 +7,9 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.example.demo.model.dto.MessageDTO;
 import com.example.demo.model.dto.PathDTO;
@@ -28,6 +30,16 @@ public class ExcelController {
 		
 		MessageDTO messageDTO=new MessageDTO();
 		messageDTO.setMessage("specif file success");
+		return ResponseEntity.ok(messageDTO);
+	}
+	
+	@PostMapping(path = "/upload",consumes="multipart/form-data")
+	public ResponseEntity<MessageDTO> uploadExcel(@RequestParam MultipartFile file,
+			@RequestParam Integer numberOfSheet) throws IOException {
+		employeeService.uploadExcel(file, numberOfSheet);
+		
+		MessageDTO messageDTO=new MessageDTO();
+		messageDTO.setMessage(String.format("upload file:%s success", file.getOriginalFilename()));
 		return ResponseEntity.ok(messageDTO);
 	}
 }
