@@ -24,7 +24,9 @@ import org.springframework.web.multipart.MultipartFile;
 import com.example.demo.dao.EmployeeDAO;
 import com.example.demo.model.dto.PathDTO;
 import com.example.demo.model.entity.EmployeeEntity;
+import com.example.demo.model.excel.EmployeeExcelDTO;
 import com.example.demo.utils.ExcelUtils;
+import com.example.demo.utils.ModelMapperUtils;
 
 import exception.BadRequestException;
 import lombok.RequiredArgsConstructor;
@@ -44,8 +46,9 @@ public class EmployeeService {
 		}
 
 		Workbook workbook = excelService.readFile(pathDTO.getDirPath(), pathDTO.getFileName());
-		List<EmployeeEntity> employeeEntities = parseEmployeeExcel(pathDTO.getSheetNum(), workbook);
-		employeeDAO.saveAll(employeeEntities);
+		List<EmployeeExcelDTO> excelDTOList = parseEmployeeExcel(pathDTO.getSheetNum(), workbook);
+		
+		employeeDAO.saveAll(ModelMapperUtils.mapList(excelDTOList,EmployeeEntity.class));
 	}
 
 	public void uploadExcel(MultipartFile file, Integer sheetNum) throws IOException{
@@ -59,12 +62,12 @@ public class EmployeeService {
 			}
 		}
 
-		List<EmployeeEntity> employeeEntities = parseEmployeeExcel(sheetNum, workbook);
-		employeeDAO.saveAll(employeeEntities);
+		List<EmployeeExcelDTO> excelDTOList = parseEmployeeExcel(sheetNum, workbook);
+		employeeDAO.saveAll(ModelMapperUtils.mapList(excelDTOList,EmployeeEntity.class));
 	}
 
-	private List<EmployeeEntity> parseEmployeeExcel(Integer sheetIndex, Workbook workbook) {
-		List<EmployeeEntity> employeeList = new ArrayList<EmployeeEntity>();
+	private List<EmployeeExcelDTO> parseEmployeeExcel(Integer sheetIndex, Workbook workbook) {
+		List<EmployeeExcelDTO> employeeList = new ArrayList<>();
 
 		Sheet sheet = workbook.getSheetAt(sheetIndex);
 		if (sheet == null) {
@@ -95,20 +98,20 @@ public class EmployeeService {
 		return employeeList;
 	}
 
-	private EmployeeEntity convertRowToEmployee(Row row) {
-		EmployeeEntity employeeEntity = new EmployeeEntity();
+	private EmployeeExcelDTO convertRowToEmployee(Row row) {
+		EmployeeExcelDTO employeeExcelDTO = new EmployeeExcelDTO();
 		int cellNum = 0;
 		// first name
 		Cell firstName = row.getCell(cellNum);
-		employeeEntity.setFirstName(ExcelUtils.convertCellValueToStr(firstName));
+		employeeExcelDTO.setFirstName(ExcelUtils.convertCellValueToStr(firstName));
 
 		// last Name
 		Cell lastName = row.getCell(cellNum++);
-		employeeEntity.setLastName(ExcelUtils.convertCellValueToStr(lastName));
+		employeeExcelDTO.setLastName(ExcelUtils.convertCellValueToStr(lastName));
 		// age
 		Cell age = row.getCell(cellNum++);
-		employeeEntity.setAge(ExcelUtils.convertCellValueToInt(age));
+		employeeExcelDTO.setAge(ExcelUtils.convertCellValueToInt(age));
 
-		return employeeEntity;
+		return employeeExcelDTO;
 	}
 }
