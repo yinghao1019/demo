@@ -39,8 +39,9 @@ public class EmployeeService {
 	private final EmployeeDAO employeeDAO;
 
 	public void importLocalExcelData(PathDTO pathDTO) throws IOException {
+		ExcelUtils.checkFileExtension(pathDTO.getFileName());
+		
 		Path filePath = Paths.get(pathDTO.getDirPath(), pathDTO.getFileName());
-
 		if (!Files.exists(filePath) || !Files.isRegularFile(filePath)) {
 			throw new BadRequestException("resource-not-found");
 		}
@@ -52,18 +53,11 @@ public class EmployeeService {
 	}
 
 	public void uploadExcel(MultipartFile file, Integer sheetNum) throws IOException{
-		String fileExtension = FileNameUtils.getExtension(file.getOriginalFilename());
-		Workbook workbook = null;
-		try (InputStream inputStream=file.getInputStream()){
-			if ("xls".equals(fileExtension)) {
-				workbook = new HSSFWorkbook(inputStream);
-			} else if ("xlsx".equals(fileExtension)) {
-				workbook = new XSSFWorkbook(inputStream);
-			}
-		}
-
+		ExcelUtils.checkFileExtension(file.getOriginalFilename());
+		Workbook workbook=ExcelUtils.getWorkbook(file);
 		List<EmployeeExcelDTO> excelDTOList = parseEmployeeExcel(sheetNum, workbook);
-		employeeDAO.saveAll(ModelMapperUtils.mapList(excelDTOList,EmployeeEntity.class));
+		List<EmployeeEntity> employeeEntities=ModelMapperUtils.mapList(excelDTOList,EmployeeEntity.class);
+		employeeDAO.saveAll(employeeEntities);
 	}
 
 	private List<EmployeeExcelDTO> parseEmployeeExcel(Integer sheetIndex, Workbook workbook) {

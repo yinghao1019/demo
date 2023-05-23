@@ -16,6 +16,9 @@ public class ErrorMessageDTO {
 
     @JsonProperty("path")
     private String path;
+    
+    @JsonProperty("traceId")
+    private String traceId;
 
     @JsonProperty("dateTime")
     private String dateTime;

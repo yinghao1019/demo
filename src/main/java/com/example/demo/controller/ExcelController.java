@@ -29,7 +29,7 @@ public class ExcelController {
 		employeeService.importLocalExcelData(pathDTO);
 		
 		MessageDTO messageDTO=new MessageDTO();
-		messageDTO.setMessage("specif file success");
+		messageDTO.setMessage("import file on disk success");
 		return ResponseEntity.ok(messageDTO);
 	}
 	

@@ -19,7 +19,7 @@ public class EmployeeEntity {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name = "oid")
-	private Long oid;
+	private Integer oid;
 
 	@Column(name = "firstname")
 	@NotNull
@@ -33,7 +33,7 @@ public class EmployeeEntity {
 	@NotNull
 	private Integer age;
 	
-	@Column
+	@Column(name = "created_timestamp")
 	@NotNull
 	private OffsetDateTime createdTimestamp; 
 	

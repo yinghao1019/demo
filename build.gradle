@@ -43,7 +43,7 @@ dependencies {
 	implementation group: 'org.apache.commons', name: 'commons-lang3', version: '3.12.0'
 	// https://mvnrepository.com/artifact/org.modelmapper/modelmapper
 	implementation group: 'org.modelmapper', name: 'modelmapper', version: '3.0.0'
-	
+	implementation group: 'com.squareup.okhttp3', name: 'okhttp', version: '4.9.0'
 	
 }
 
